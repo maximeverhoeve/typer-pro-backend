@@ -35,6 +35,9 @@ io.on('connection', (socket) => {
     socket.emit('receive_message', {message: `---- joined ${room}`, nickname});
     socket.to(room).emit('receive_message', {message: `---- joined ${room}`, nickname});
   })
+  socket.on('disconnect', () => {
+    console.log('User disconnected with id:', socket.id);
+  })
 })
 
 app.get("/", (req, res) => res.type('html').send(html));
