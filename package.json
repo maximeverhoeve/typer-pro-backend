@@ -1,0 +1,17 @@
+{
+  "name": "typing-test-backend",
+  "version": "1.0.0",
+  "description": "Backend of the typing-test app, made by DevMax",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "author": "Maxime Verhoeve",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "http": "^0.0.1-security",
+    "socket.io": "^4.5.3"
+  }
+}
