@@ -20,16 +20,14 @@ io.on('connection', (socket) => {
   console.log('user connected:', socket.id);
 
   // ON SEND MESSAGE
-  socket.on('send_message', ({ message }) => {
-    socket.to(socket.room).emit('receive_message', { message, nickname: socket.nickname})
-    socket.emit('receive_message', { message, nickname: socket.nickname})
+  socket.on('send_message', ({ message, nickname, room }) => {
+    socket.to(room).emit('receive_message', { message, nickname })
+    socket.emit('receive_message', { message, nickname: nickname})
   })
 
   // ON JOIN ROOM
   socket.on('join_room', ({ room, nickname }) => {
     console.log(`User "${nickname}" joined room: "${room}"`)
-    socket.nickname = nickname;
-    socket.room = room;
     socket.join(room);
     socket.emit('room_joined', {room, nickname});
     socket.emit('receive_message', {message: `---- joined ${room}`, nickname});
