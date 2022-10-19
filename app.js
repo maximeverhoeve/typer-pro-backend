@@ -41,10 +41,20 @@ io.on('connection', (socket) => {
     socket.to(room).emit('receive_message', {message: `---- joined ${room}`, nickname});
   })
 
+  // ON LEFT ROOM
+  socket.on('leave_room', () => {
+    socket.to(socket.room).emit('receive_message', {message: `---- left the room`, nickname: socket.nickname});
+    socket.leave(socket.room);
+    socket.room = undefined;
+    socket.emit('room_left');
+  })
+
   // ON DISCONNECT
   socket.on('disconnect', () => {
-    // Send message to room that user left it
-    socket.to(socket.room).emit('receive_message', {message: `---- left the room`, nickname: socket.nickname});
+    if (socket.room) {
+      // Send message to room that user left it
+      socket.to(socket.room).emit('receive_message', {message: `---- left the room`, nickname: socket.nickname});
+    }
 
     // log to server
     console.log(`User ${socket.nickname || socket.id } disconnected ${socket.room ? 'from room: ' + socket.room : ''}`);
