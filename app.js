@@ -4,7 +4,6 @@ const app = express();
 const { Server } = require('socket.io');
 const port = process.env.PORT || 3001;
 
-const { instrument } = require('@socket.io/admin-ui');
 
 // Prevent some possible connection errors with cors
 const cors = require('cors');
@@ -15,12 +14,7 @@ const httpServer = http.createServer(app);
 
 
 // SETUP IO SERVER
-const io = module.exports.io = new Server(httpServer, {
-  cors: {
-    origin: ["https://admin.socket.io"],
-    credentials: true
-  }
-})
+const io = module.exports.io = new Server(httpServer)
 
 io.on('connection', (socket) => {
   console.log('New user connected:', socket.id)
@@ -67,5 +61,3 @@ app.get("/", (req, res) => res.type('html').send(html));
 httpServer.listen(port, () => {
   console.log('SERVER IS RUNNING DEVMAX');
 })
-
-instrument(io, { auth: false});
