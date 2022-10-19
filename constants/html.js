@@ -50,4 +50,4 @@ const html = `
 </html>
 `
 
-module.exports = { html }
+module.exports = html;
