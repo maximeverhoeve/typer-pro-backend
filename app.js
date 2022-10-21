@@ -26,13 +26,24 @@ io.on('connection', (socket) => {
 
   // ON JOIN ROOM
   socket.on('join_room', ({ room, nickname }) => {
+    
     socket.room = room;
     socket.nickname = nickname;
     console.log(`User "${nickname}" joined room: "${room}"`)
     socket.join(room);
+    const clientIdsInRoom =  io.sockets.adapter.rooms.get(room);
+    const players = [];
+    clientIdsInRoom.forEach((id) => {
+      const clientSocket = io.sockets.sockets.get(id);
+      players.push(clientSocket.nickname);
+    }); 
     socket.emit('room_joined', {room, nickname});
+
     socket.emit('receive_message', {message: `---- joined ${room}`, nickname});
     socket.to(room).emit('receive_message', {message: `---- joined ${room}`, nickname});
+    
+    socket.emit('room_updated', players);
+    socket.to(room).emit('room_updated', players);
   })
 
   // ON LEFT ROOM
