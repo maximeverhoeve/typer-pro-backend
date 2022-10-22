@@ -15,6 +15,7 @@ const http = require("http");
 const socket_io_1 = require("socket.io");
 const cors = require("cors");
 const html_1 = require("./constants/html");
+const chatHandler_1 = require("./sockets/chatHandler");
 const app = express();
 const port = process.env.PORT || 3001;
 // Prevent some possible connection errors with cors
@@ -36,40 +37,48 @@ const getPlayerArray = (room) => {
 };
 io.on('connection', (socket) => {
     console.log('New user connected:', socket.id);
-    // ON SEND MESSAGE
-    socket.on('send_message', ({ message, nickname, room }) => {
-        socket.to(room).emit('receive_message', { message, nickname });
-        socket.emit('receive_message', { message, nickname });
-    });
+    // HANDLE CHAT
+    (0, chatHandler_1.default)(socket);
     // ON JOIN ROOM
-    socket.on('join_room', ({ room, nickname }) => __awaiter(void 0, void 0, void 0, function* () {
+    socket.on('room:join', ({ room, nickname }) => __awaiter(void 0, void 0, void 0, function* () {
         socket.data.room = room;
         socket.data.nickname = nickname;
         console.log(`User "${nickname}" joined room: "${room}"`);
         yield socket.join(room);
         const players = getPlayerArray(room);
-        socket.emit('room_joined', { room, nickname });
-        socket.emit('receive_message', { message: `---- joined ${room}`, nickname });
-        socket.to(room).emit('receive_message', { message: `---- joined ${room}`, nickname });
-        socket.emit('room_updated', players);
-        socket.to(room).emit('room_updated', players);
+        socket.emit('room:joined', { room, nickname });
+        socket.emit('chat:receive', {
+            message: `---- joined ${room}`,
+            nickname,
+        });
+        socket
+            .to(room)
+            .emit('chat:receive', { message: `---- joined ${room}`, nickname });
+        socket.emit('room:update', players);
+        socket.to(room).emit('room:update', players);
     }));
     // ON LEFT ROOM
-    socket.on('leave_room', () => __awaiter(void 0, void 0, void 0, function* () {
+    socket.on('room:leave', () => __awaiter(void 0, void 0, void 0, function* () {
         if (socket.data.room && socket.data.nickname) {
-            socket.to(socket.data.room).emit('receive_message', { message: '---- left the room', nickname: socket.data.nickname });
+            socket.to(socket.data.room).emit('chat:receive', {
+                message: '---- left the room',
+                nickname: socket.data.nickname,
+            });
             const players = getPlayerArray(socket.data.room);
-            socket.to(socket.data.room).emit('room_updated', players);
+            socket.to(socket.data.room).emit('room:update', players);
             yield socket.leave(socket.data.room);
             socket.data.room = undefined;
-            socket.emit('room_left');
+            socket.emit('room:left');
         }
     }));
     // ON DISCONNECT
     socket.on('disconnect', () => {
         if (socket.data.room && socket.data.nickname) {
             // Send message to room that user left it
-            socket.to(socket.data.room).emit('receive_message', { message: '---- left the room', nickname: socket.data.nickname });
+            socket.to(socket.data.room).emit('chat:receive', {
+                message: '---- left the room',
+                nickname: socket.data.nickname,
+            });
         }
         // log to server
         console.log(`User ${socket.data.nickname || socket.id} disconnected ${socket.data.room ? 'from room: ' + socket.data.room : ''}`);

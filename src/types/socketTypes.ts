@@ -1,13 +1,14 @@
 export interface Message {
   message: string;
   nickname: string;
+  room: string;
 }
 
 export interface ServerToClientEvents {
-  receive_message: (p: { message: string; nickname: string }) => void;
-  room_joined: (p: { room: string; nickname: string }) => void;
-  room_left: () => void;
-  room_updated: (players: string[]) => void;
+  'chat:receive': (p: { message: string; nickname: string }) => void;
+  'room:joined': (p: { room: string; nickname: string }) => void;
+  'room:left': () => void;
+  'room:update': (players: string[]) => void;
 }
 
 export interface InterServerEvents {
@@ -15,13 +16,9 @@ export interface InterServerEvents {
 }
 
 export interface ClientToServerEvents {
-  send_message: (p: {
-    message: string;
-    nickname: string;
-    room: string;
-  }) => void;
-  join_room: (p: { room: string; nickname: string }) => void;
-  leave_room: () => void;
+  'chat:send': (p: { message: string; nickname: string; room: string }) => void;
+  'room:join': (p: { room: string; nickname: string }) => void;
+  'room:leave': () => void;
 }
 
 export interface SocketData {
