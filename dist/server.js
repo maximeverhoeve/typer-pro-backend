@@ -1,21 +1,13 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.io = void 0;
+exports.io = exports.getPlayerArray = void 0;
 const express = require("express");
 const http = require("http");
 const socket_io_1 = require("socket.io");
 const cors = require("cors");
 const html_1 = require("./constants/html");
 const chatHandler_1 = require("./sockets/chatHandler");
+const roomHandler_1 = require("./sockets/roomHandler");
 const app = express();
 const port = process.env.PORT || 3001;
 // Prevent some possible connection errors with cors
@@ -35,42 +27,13 @@ const getPlayerArray = (room) => {
     });
     return players;
 };
+exports.getPlayerArray = getPlayerArray;
 io.on('connection', (socket) => {
     console.log('New user connected:', socket.id);
     // HANDLE CHAT
     (0, chatHandler_1.default)(socket);
-    // ON JOIN ROOM
-    socket.on('room:join', ({ room, nickname }) => __awaiter(void 0, void 0, void 0, function* () {
-        socket.data.room = room;
-        socket.data.nickname = nickname;
-        console.log(`User "${nickname}" joined room: "${room}"`);
-        yield socket.join(room);
-        const players = getPlayerArray(room);
-        socket.emit('room:joined', { room, nickname });
-        socket.emit('chat:receive', {
-            message: `---- joined ${room}`,
-            nickname,
-        });
-        socket
-            .to(room)
-            .emit('chat:receive', { message: `---- joined ${room}`, nickname });
-        socket.emit('room:update', players);
-        socket.to(room).emit('room:update', players);
-    }));
-    // ON LEFT ROOM
-    socket.on('room:leave', () => __awaiter(void 0, void 0, void 0, function* () {
-        if (socket.data.room && socket.data.nickname) {
-            socket.to(socket.data.room).emit('chat:receive', {
-                message: '---- left the room',
-                nickname: socket.data.nickname,
-            });
-            const players = getPlayerArray(socket.data.room);
-            socket.to(socket.data.room).emit('room:update', players);
-            yield socket.leave(socket.data.room);
-            socket.data.room = undefined;
-            socket.emit('room:left');
-        }
-    }));
+    // HANDLE ROOM
+    (0, roomHandler_1.default)(socket);
     // ON DISCONNECT
     socket.on('disconnect', () => {
         if (socket.data.room && socket.data.nickname) {
@@ -79,6 +42,9 @@ io.on('connection', (socket) => {
                 message: '---- left the room',
                 nickname: socket.data.nickname,
             });
+            // update room
+            const players = (0, exports.getPlayerArray)(socket.data.room);
+            socket.to(socket.data.room).emit('room:update', players);
         }
         // log to server
         console.log(`User ${socket.data.nickname || socket.id} disconnected ${socket.data.room ? 'from room: ' + socket.data.room : ''}`);

@@ -10,6 +10,7 @@ import { Server } from 'socket.io';
 import * as cors from 'cors';
 import html from './constants/html';
 import chatHandler from './sockets/chatHandler';
+import roomHandler from './sockets/roomHandler';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -27,7 +28,7 @@ const io = new Server<
   SocketData
 >(httpServer);
 
-const getPlayerArray = (room: string): string[] => {
+export const getPlayerArray = (room: string): string[] => {
   const clientIdsInRoom = io.sockets.adapter.rooms.get(room);
   const players: string[] = [];
   clientIdsInRoom?.forEach((id: string) => {
@@ -43,42 +44,8 @@ io.on('connection', (socket) => {
   // HANDLE CHAT
   chatHandler(socket);
 
-  // ON JOIN ROOM
-  socket.on('room:join', async ({ room, nickname }) => {
-    socket.data.room = room;
-    socket.data.nickname = nickname;
-    console.log(`User "${nickname}" joined room: "${room}"`);
-    await socket.join(room);
-    const players = getPlayerArray(room);
-    socket.emit('room:joined', { room, nickname });
-
-    socket.emit('chat:receive', {
-      message: `---- joined ${room}`,
-      nickname,
-    });
-
-    socket
-      .to(room)
-      .emit('chat:receive', { message: `---- joined ${room}`, nickname });
-
-    socket.emit('room:update', players);
-    socket.to(room).emit('room:update', players);
-  });
-
-  // ON LEFT ROOM
-  socket.on('room:leave', async () => {
-    if (socket.data.room && socket.data.nickname) {
-      socket.to(socket.data.room).emit('chat:receive', {
-        message: '---- left the room',
-        nickname: socket.data.nickname,
-      });
-      const players = getPlayerArray(socket.data.room);
-      socket.to(socket.data.room).emit('room:update', players);
-      await socket.leave(socket.data.room);
-      socket.data.room = undefined;
-      socket.emit('room:left');
-    }
-  });
+  // HANDLE ROOM
+  roomHandler(socket);
 
   // ON DISCONNECT
   socket.on('disconnect', () => {
@@ -88,6 +55,10 @@ io.on('connection', (socket) => {
         message: '---- left the room',
         nickname: socket.data.nickname,
       });
+
+      // update room
+      const players = getPlayerArray(socket.data.room);
+      socket.to(socket.data.room).emit('room:update', players);
     }
 
     // log to server
