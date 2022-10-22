@@ -37,9 +37,9 @@ const roomHandler = (socket) => {
                 message: '---- left the room',
                 nickname: socket.data.nickname,
             });
+            yield socket.leave(socket.data.room);
             const players = (0, server_1.getPlayerArray)(socket.data.room);
             socket.to(socket.data.room).emit('room:update', players);
-            yield socket.leave(socket.data.room);
             socket.data.room = undefined;
             socket.emit('room:left');
         }

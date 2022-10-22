@@ -54,9 +54,9 @@ const roomHandler = (
         message: '---- left the room',
         nickname: socket.data.nickname,
       });
+      await socket.leave(socket.data.room);
       const players = getPlayerArray(socket.data.room);
       socket.to(socket.data.room).emit('room:update', players);
-      await socket.leave(socket.data.room);
       socket.data.room = undefined;
       socket.emit('room:left');
     }
