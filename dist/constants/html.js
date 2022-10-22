@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const html = `
 <!DOCTYPE html>
 <html>
@@ -48,6 +50,6 @@ const html = `
     </section>
   </body>
 </html>
-`
-
-module.exports = html;
+`;
+exports.default = html;
+//# sourceMappingURL=html.js.map
