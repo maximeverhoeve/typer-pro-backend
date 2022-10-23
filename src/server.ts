@@ -48,7 +48,7 @@ io.on('connection', (socket) => {
   roomHandler(socket);
 
   // ON DISCONNECT
-  socket.on('disconnect', () => {
+  const onDisconnect = (): void => {
     if (socket.data.room && socket.data.nickname) {
       // Send message to room that user left it
       socket.to(socket.data.room).emit('chat:receive', {
@@ -67,7 +67,10 @@ io.on('connection', (socket) => {
         socket.data.room ? 'from room: ' + socket.data.room : ''
       }`,
     );
-  });
+  };
+
+  // EVENTS
+  socket.on('disconnect', onDisconnect);
 });
 
 app.get('/', (req, res) => res.type('html').send(html));
