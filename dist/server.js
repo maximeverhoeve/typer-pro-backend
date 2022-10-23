@@ -8,6 +8,7 @@ const cors = require("cors");
 const html_1 = require("./constants/html");
 const chatHandler_1 = require("./sockets/chatHandler");
 const roomHandler_1 = require("./sockets/roomHandler");
+const playerHandler_1 = require("./sockets/playerHandler");
 const app = express();
 const port = process.env.PORT || 3001;
 // Prevent some possible connection errors with cors
@@ -23,7 +24,7 @@ const getPlayerArray = (room) => {
         var _a;
         const clientSocket = io.sockets.sockets.get(id);
         if ((_a = clientSocket === null || clientSocket === void 0 ? void 0 : clientSocket.data) === null || _a === void 0 ? void 0 : _a.nickname)
-            players.push(clientSocket.data.nickname);
+            players.push(clientSocket.data.player);
     });
     return players;
 };
@@ -34,6 +35,8 @@ io.on('connection', (socket) => {
     (0, chatHandler_1.default)(socket);
     // HANDLE ROOM
     (0, roomHandler_1.default)(socket);
+    // HANDLE Player
+    (0, playerHandler_1.default)(socket);
     // ON DISCONNECT
     const onDisconnect = () => {
         if (socket.data.room && socket.data.nickname) {

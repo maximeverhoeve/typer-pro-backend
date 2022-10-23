@@ -1,6 +1,7 @@
 import {
   ClientToServerEvents,
   InterServerEvents,
+  Player,
   ServerToClientEvents,
   SocketData,
 } from './types/socketTypes';
@@ -11,6 +12,7 @@ import * as cors from 'cors';
 import html from './constants/html';
 import chatHandler from './sockets/chatHandler';
 import roomHandler from './sockets/roomHandler';
+import playerHandler from './sockets/playerHandler';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -28,12 +30,12 @@ const io = new Server<
   SocketData
 >(httpServer);
 
-export const getPlayerArray = (room: string): string[] => {
+export const getPlayerArray = (room: string): Player[] => {
   const clientIdsInRoom = io.sockets.adapter.rooms.get(room);
-  const players: string[] = [];
+  const players: Player[] = [];
   clientIdsInRoom?.forEach((id: string) => {
     const clientSocket = io.sockets.sockets.get(id);
-    if (clientSocket?.data?.nickname) players.push(clientSocket.data.nickname);
+    if (clientSocket?.data?.nickname) players.push(clientSocket.data.player);
   });
   return players;
 };
@@ -46,6 +48,9 @@ io.on('connection', (socket) => {
 
   // HANDLE ROOM
   roomHandler(socket);
+
+  // HANDLE Player
+  playerHandler(socket);
 
   // ON DISCONNECT
   const onDisconnect = (): void => {

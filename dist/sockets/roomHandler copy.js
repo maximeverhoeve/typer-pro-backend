@@ -46,8 +46,6 @@ const roomHandler = (socket) => {
             });
             yield socket.leave(socket.data.room);
             const players = (0, server_1.getPlayerArray)(socket.data.room);
-            if (players.length === 1)
-                players[0].isReady = false;
             socket.to(socket.data.room).emit('room:update', players);
             socket.data.room = undefined;
             socket.emit('room:left');
@@ -58,4 +56,4 @@ const roomHandler = (socket) => {
     socket.on('room:leave', onRoomLeave);
 };
 exports.default = roomHandler;
-//# sourceMappingURL=roomHandler.js.map
+//# sourceMappingURL=roomHandler%20copy.js.map

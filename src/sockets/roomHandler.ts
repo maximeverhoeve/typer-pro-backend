@@ -27,8 +27,16 @@ const roomHandler = (
     nickname,
     room,
   }: RoomJoinProps): Promise<void> => {
+    // SET SOCKET DATA
     socket.data.room = room;
     socket.data.nickname = nickname;
+    socket.data.player = {
+      nickname,
+      isReady: false,
+      progress: 0,
+    };
+
+    // ----
     console.log(`User "${nickname}" joined room: "${room}"`);
     await socket.join(room);
     const players = getPlayerArray(room);
@@ -54,8 +62,11 @@ const roomHandler = (
         message: '---- left the room',
         nickname: socket.data.nickname,
       });
+
       await socket.leave(socket.data.room);
+
       const players = getPlayerArray(socket.data.room);
+      if (players.length === 1) players[0].isReady = false;
       socket.to(socket.data.room).emit('room:update', players);
       socket.data.room = undefined;
       socket.emit('room:left');
