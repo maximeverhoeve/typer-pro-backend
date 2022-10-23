@@ -19,39 +19,6 @@ const wordArray = [
     'confessions',
     'potstones',
     'mussily',
-    'pickoff',
-    'foreigner',
-    'dysuric',
-    'perikarya',
-    'madreporites',
-    'grabbling',
-    'councilwomen',
-    'darkeners',
-    'atriums',
-    'beachwear',
-    'obturators',
-    'depravednesses',
-    'practicability',
-    'perdurabilities',
-    'surrealists',
-    'acaricides',
-    'kobos',
-    'frounces',
-    'achievements',
-    'bridegroom',
-    'cratered',
-    'craven',
-    'bivalve',
-    'canst',
-    'moperies',
-    'edifies',
-    'hydroxides',
-    'asphyxy',
-    'elaborately',
-    'cavalero',
-    'privatise',
-    'petulancy',
-    'nagger',
 ];
 const playerHandler = (socket) => {
     // EVENT-FUNCTIONS
@@ -67,8 +34,15 @@ const playerHandler = (socket) => {
         socket.emit('game:started', text);
         socket.to(socket.data.room).emit('game:started', text);
     };
+    const onProgressUpdate = (progress) => {
+        socket.data.player.progress = progress;
+        const players = (0, server_1.getPlayerArray)(socket.data.room);
+        socket.emit('room:update', players);
+        socket.to(socket.data.room).emit('room:update', players);
+    };
     // EVENTS
     socket.on('player:update-ready', onReadyUpate);
+    socket.on('player:progress', onProgressUpdate);
     socket.on('game:start', onGameStart);
 };
 exports.default = playerHandler;
