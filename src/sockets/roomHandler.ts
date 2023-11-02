@@ -40,11 +40,13 @@ const roomHandler = (
       nickname,
       isReady: false,
       progress: 0,
+      id: socket.id,
     };
 
     // ----
     console.log(`User "${nickname}" joined room: "${room}"`);
     await socket.join(room);
+    onRoomsRequest();
     const players = getPlayerArray(room);
     socket.emit('room:joined', { room, nickname });
 
@@ -73,10 +75,18 @@ const roomHandler = (
 
       const players = getPlayerArray(socket.data.room);
       if (players.length === 1) players[0].isReady = false;
+      socket.emit('room:update', players);
       socket.to(socket.data.room).emit('room:update', players);
       socket.data.room = undefined;
       socket.emit('room:left');
+      onRoomsRequest();
     }
+  };
+
+  // ----- SEND ROOM DATA
+  const onRoomRequest = (room: string): void => {
+    const players = getPlayerArray(room);
+    socket.emit('room:update', players);
   };
 
   // ----- GET ALL ROOMS
@@ -87,12 +97,13 @@ const roomHandler = (
       count: players.size,
     }));
 
-    socket.emit('rooms:get', roomsMap);
+    socket.broadcast.emit('rooms:get', roomsMap);
   };
 
   // EVENTS
   socket.on('room:join', onRoomJoin);
   socket.on('room:leave', onRoomLeave);
+  socket.on('room:request', onRoomRequest);
   socket.on('rooms:request', onRoomsRequest);
 };
 

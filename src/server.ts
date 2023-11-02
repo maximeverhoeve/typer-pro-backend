@@ -43,8 +43,10 @@ export const getPlayerArray = (room: string): Player[] => {
   return players;
 };
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   console.log('New user connected:', socket.id);
+
+  await socket.leave(socket.id);
 
   // HANDLE CHAT
   chatHandler(socket);
@@ -67,6 +69,12 @@ io.on('connection', (socket) => {
       // update room
       const players = getPlayerArray(socket.data.room);
       socket.to(socket.data.room).emit('room:update', players);
+      const rooms = Array.from(io.sockets.adapter.rooms);
+      const roomsMap = rooms.map(([name, players]) => ({
+        name,
+        count: players.size,
+      }));
+      socket.broadcast.emit('rooms:get', roomsMap);
     }
 
     // log to server
