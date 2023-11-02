@@ -1,4 +1,4 @@
-import { Socket } from 'socket.io';
+import { Socket, Server } from 'socket.io';
 import {
   ClientToServerEvents,
   InterServerEvents,
@@ -14,6 +14,12 @@ interface RoomJoinProps {
 
 const roomHandler = (
   socket: Socket<
+    ClientToServerEvents,
+    ServerToClientEvents,
+    InterServerEvents,
+    SocketData
+  >,
+  io: Server<
     ClientToServerEvents,
     ServerToClientEvents,
     InterServerEvents,
@@ -73,9 +79,21 @@ const roomHandler = (
     }
   };
 
+  // ----- GET ALL ROOMS
+  const onRoomsRequest = (): void => {
+    const rooms = Array.from(io.sockets.adapter.rooms);
+    const roomsMap = rooms.map(([name, players]) => ({
+      name,
+      count: players.size,
+    }));
+
+    socket.emit('rooms:get', roomsMap);
+  };
+
   // EVENTS
   socket.on('room:join', onRoomJoin);
   socket.on('room:leave', onRoomLeave);
+  socket.on('rooms:request', onRoomsRequest);
 };
 
 export default roomHandler;

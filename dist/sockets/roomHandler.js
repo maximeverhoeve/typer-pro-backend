@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const server_1 = require("../server");
-const roomHandler = (socket) => {
+const roomHandler = (socket, io) => {
     // EVENT-FUNCTIONS
     // ----- JOIN ROOM
     const onRoomJoin = ({ nickname, room, }) => __awaiter(void 0, void 0, void 0, function* () {
@@ -53,9 +53,19 @@ const roomHandler = (socket) => {
             socket.emit('room:left');
         }
     });
+    // ----- GET ALL ROOMS
+    const onRoomsRequest = () => {
+        const rooms = Array.from(io.sockets.adapter.rooms);
+        const roomsMap = rooms.map(([name, players]) => ({
+            name,
+            count: players.size,
+        }));
+        socket.emit('rooms:get', roomsMap);
+    };
     // EVENTS
     socket.on('room:join', onRoomJoin);
     socket.on('room:leave', onRoomLeave);
+    socket.on('rooms:request', onRoomsRequest);
 };
 exports.default = roomHandler;
 //# sourceMappingURL=roomHandler.js.map

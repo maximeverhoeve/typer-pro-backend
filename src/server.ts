@@ -28,7 +28,10 @@ const io = new Server<
   ServerToClientEvents,
   InterServerEvents,
   SocketData
->(httpServer);
+>(httpServer, {
+  transports: ['websocket'],
+  cors: { origin: 'https://admin.socket.io' },
+});
 
 export const getPlayerArray = (room: string): Player[] => {
   const clientIdsInRoom = io.sockets.adapter.rooms.get(room);
@@ -47,7 +50,7 @@ io.on('connection', (socket) => {
   chatHandler(socket);
 
   // HANDLE ROOM
-  roomHandler(socket);
+  roomHandler(socket, io);
 
   // HANDLE Player
   playerHandler(socket);

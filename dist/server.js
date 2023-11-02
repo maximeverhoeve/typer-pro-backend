@@ -15,7 +15,10 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 const httpServer = http.createServer(app);
 // SETUP IO SERVER
-const io = new socket_io_1.Server(httpServer);
+const io = new socket_io_1.Server(httpServer, {
+    transports: ['websocket'],
+    cors: { origin: 'https://admin.socket.io' },
+});
 exports.io = io;
 const getPlayerArray = (room) => {
     const clientIdsInRoom = io.sockets.adapter.rooms.get(room);
@@ -34,7 +37,7 @@ io.on('connection', (socket) => {
     // HANDLE CHAT
     (0, chatHandler_1.default)(socket);
     // HANDLE ROOM
-    (0, roomHandler_1.default)(socket);
+    (0, roomHandler_1.default)(socket, io);
     // HANDLE Player
     (0, playerHandler_1.default)(socket);
     // ON DISCONNECT
