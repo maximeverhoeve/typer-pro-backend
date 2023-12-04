@@ -29,6 +29,13 @@ const playerHandler = (socket) => {
         socket.emit('room:update', players);
         socket.to(socket.data.room).emit('room:update', players);
     };
+    const onPlayerUpdate = ({ color }) => {
+        console.log(`Player ${socket.data.nickname} updated color to ${color}`);
+        socket.data.player.color = color;
+        const players = (0, server_1.getPlayerArray)(socket.data.room);
+        socket.emit('room:update', players);
+        socket.to(socket.data.room).emit('room:update', players);
+    };
     const onGameStart = () => {
         const text = wordArray.join(' ');
         socket.emit('game:started', text);
@@ -42,6 +49,7 @@ const playerHandler = (socket) => {
     };
     // EVENTS
     socket.on('player:update-ready', onReadyUpate);
+    socket.on('player:update', onPlayerUpdate);
     socket.on('player:progress', onProgressUpdate);
     socket.on('game:start', onGameStart);
 };

@@ -22,6 +22,7 @@ const roomHandler = (socket, io) => {
             isReady: false,
             progress: 0,
             id: socket.id,
+            color: '#888d8a',
         };
         // ----
         console.log(`User "${nickname}" joined room: "${room}"`);

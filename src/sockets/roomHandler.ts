@@ -41,6 +41,7 @@ const roomHandler = (
       isReady: false,
       progress: 0,
       id: socket.id,
+      color: '#888d8a',
     };
 
     // ----
