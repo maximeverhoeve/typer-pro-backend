@@ -51,9 +51,9 @@ const playerHandler = (socket) => {
         socket.emit('room:update', players);
         socket.to(socket.data.room).emit('room:update', players);
     };
-    const onPlayerUpdate = ({ color }) => {
-        console.log(`Player ${socket.data.nickname} updated color to ${color}`);
-        socket.data.player.color = color;
+    const onPlayerUpdate = (payload) => {
+        console.log(`Player ${socket.data.nickname} updated  ${JSON.stringify(payload)}`);
+        socket.data.player = Object.assign(Object.assign({}, socket.data.player), payload);
         const players = (0, server_1.getPlayerArray)(socket.data.room);
         socket.emit('room:update', players);
         socket.to(socket.data.room).emit('room:update', players);

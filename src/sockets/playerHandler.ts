@@ -70,9 +70,11 @@ const playerHandler = (
     socket.emit('room:update', players);
     socket.to(socket.data.room).emit('room:update', players);
   };
-  const onPlayerUpdate = ({ color }: Partial<Player>): void => {
-    console.log(`Player ${socket.data.nickname} updated color to ${color}`);
-    socket.data.player.color = color;
+  const onPlayerUpdate = (payload: Partial<Player>): void => {
+    console.log(
+      `Player ${socket.data.nickname} updated  ${JSON.stringify(payload)}`,
+    );
+    socket.data.player = { ...socket.data.player, ...payload };
     const players = getPlayerArray(socket.data.room);
 
     socket.emit('room:update', players);
