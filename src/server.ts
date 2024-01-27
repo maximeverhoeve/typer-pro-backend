@@ -2,6 +2,7 @@ import {
   ClientToServerEvents,
   InterServerEvents,
   Player,
+  RoomStateObject,
   ServerToClientEvents,
   SocketData,
 } from './types/socketTypes';
@@ -21,6 +22,10 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 
 const httpServer = http.createServer(app);
+
+// DEFINE ROOM STATE
+
+const roomState: RoomStateObject = {};
 
 // SETUP IO SERVER
 const io = new Server<

@@ -18,6 +18,12 @@ export interface Room {
   count: number;
 }
 
+export interface RoomState {
+  name: string;
+  players: Player[];
+  status: 'LAUNCHING' | 'STARTING' | 'IN-PROGRESS' | 'IDLE';
+}
+
 export interface ServerToClientEvents {
   'chat:receive': (p: { message: string; nickname: string }) => void;
   'room:joined': (p: { room: string; nickname: string }) => void;
@@ -49,4 +55,8 @@ export interface SocketData {
 
 export interface InterServerEvents {
   ping: () => void;
+}
+
+export interface RoomStateObject {
+  [roomId: string]: RoomState;
 }
