@@ -2,7 +2,6 @@ import {
   ClientToServerEvents,
   InterServerEvents,
   Player,
-  RoomStateObject,
   ServerToClientEvents,
   SocketData,
 } from './types/socketTypes';
@@ -14,6 +13,7 @@ import html from './constants/html';
 import chatHandler from './sockets/chatHandler';
 import roomHandler from './sockets/roomHandler';
 import playerHandler from './sockets/playerHandler';
+import RoomStates from './classes/RoomStates';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -22,10 +22,6 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 
 const httpServer = http.createServer(app);
-
-// DEFINE ROOM STATE
-
-const roomState: RoomStateObject = {};
 
 // SETUP IO SERVER
 const io = new Server<
@@ -38,6 +34,8 @@ const io = new Server<
   cors: { origin: 'https://admin.socket.io' },
 });
 
+// DEFINE ROOM STATE
+const roomStates = new RoomStates(io);
 export const getPlayerArray = (room: string): Player[] => {
   const clientIdsInRoom = io.sockets.adapter.rooms.get(room);
   const players: Player[] = [];
@@ -57,7 +55,7 @@ io.on('connection', async (socket) => {
   chatHandler(socket);
 
   // HANDLE ROOM
-  roomHandler(socket, io);
+  roomHandler(socket, io, roomStates);
 
   // HANDLE Player
   playerHandler(socket);
@@ -73,6 +71,8 @@ io.on('connection', async (socket) => {
 
       // update room
       const players = getPlayerArray(socket.data.room);
+      if (players.length === 1) players[0].isReady = false;
+      if (players.length === 0) roomStates.removeRoomState(socket.data.room);
       socket.to(socket.data.room).emit('room:update', players);
       const rooms = Array.from(io.sockets.adapter.rooms);
       const roomsMap = rooms.map(([name, players]) => ({

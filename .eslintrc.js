@@ -1,7 +1,7 @@
 module.exports = {
   env: {
     browser: true,
-    es2021: true
+    es2021: true,
   },
   extends: 'standard-with-typescript',
   overrides: [
@@ -13,16 +13,16 @@ module.exports = {
       // If you don't want to extend any rules, you don't need an `extends` attribute.
       extends: [
         'plugin:@typescript-eslint/recommended',
-        'plugin:@typescript-eslint/recommended-requiring-type-checking'
+        'plugin:@typescript-eslint/recommended-requiring-type-checking',
       ],
       parserOptions: {
-        project: ['./tsconfig.json'] // Specify it only for TypeScript files
-      }
-    }
+        project: ['./tsconfig.json'], // Specify it only for TypeScript files
+      },
+    },
   ],
   parserOptions: {
     ecmaVersion: 'latest',
-    sourceType: 'module'
+    sourceType: 'module',
   },
   rules: {
     'no-empty': 'warn',
@@ -37,13 +37,14 @@ module.exports = {
     '@typescript-eslint/prefer-nullish-coalescing': 'off',
     '@typescript-eslint/strict-boolean-expressions': 'off',
     '@typescript-eslint/no-floating-promises': 'warn',
-    "@typescript-eslint/member-delimiter-style": "off",
+    '@typescript-eslint/member-delimiter-style': 'off',
     '@typescript-eslint/indent': 'off',
+    '@typescript-eslint/space-before-function-paren': 'off',
     '@typescript-eslint/no-empty-interface': [
       'warn',
       {
-        allowSingleExtends: true
-      }
-    ]
-  }
-}
+        allowSingleExtends: true,
+      },
+    ],
+  },
+};

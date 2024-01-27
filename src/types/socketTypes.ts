@@ -1,3 +1,5 @@
+import { Server } from 'socket.io';
+
 export interface Player {
   nickname: string;
   isReady: boolean;
@@ -20,7 +22,6 @@ export interface Room {
 
 export interface RoomState {
   name: string;
-  players: Player[];
   status: 'LAUNCHING' | 'STARTING' | 'IN-PROGRESS' | 'IDLE';
 }
 
@@ -33,6 +34,7 @@ export interface ServerToClientEvents {
   'room:countdown-ended': () => void;
   'rooms:get': (rooms: Room[]) => void;
   'game:started': (text: string) => void;
+  'roomstate:update': (roomState: RoomState) => void;
 }
 export interface ClientToServerEvents {
   'chat:send': (p: { message: string; nickname: string; room: string }) => void;
@@ -60,3 +62,10 @@ export interface InterServerEvents {
 export interface RoomStateObject {
   [roomId: string]: RoomState;
 }
+
+export type IoType = Server<
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  SocketData
+>;

@@ -6,6 +6,7 @@ import {
   SocketData,
 } from 'socketTypes';
 import { getPlayerArray } from '../server';
+import RoomStates from '../classes/RoomStates';
 
 interface RoomJoinProps {
   nickname: string;
@@ -25,6 +26,7 @@ const roomHandler = (
     InterServerEvents,
     SocketData
   >,
+  roomStates: RoomStates,
 ): void => {
   // EVENT-FUNCTIONS
 
@@ -45,37 +47,31 @@ const roomHandler = (
     };
 
     // ----
-    console.log(`User "${nickname}" joined room: "${room}"`);
     await socket.join(room);
+    console.log(`User "${nickname}" joined room: "${room}"`);
+
+    /** Send rooms update to client  */
     onRoomsRequest();
+
     const players = getPlayerArray(room);
     socket.emit('room:joined', { room, nickname });
-
-    socket.emit('chat:receive', {
-      message: `---- joined ${room}`,
-      nickname,
-    });
-
-    socket
-      .to(room)
-      .emit('chat:receive', { message: `---- joined ${room}`, nickname });
-
     socket.emit('room:update', players);
     socket.to(room).emit('room:update', players);
+
+    /** Create room state object */
+    const roomState = roomStates.getRoomState(room);
+    if (!roomState) {
+      roomStates.addRoomState(room);
+    }
   };
 
   // ----- LEAVE ROOM
   const onRoomLeave = async (): Promise<void> => {
     if (socket.data.room && socket.data.nickname) {
-      socket.to(socket.data.room).emit('chat:receive', {
-        message: '---- left the room',
-        nickname: socket.data.nickname,
-      });
-
       await socket.leave(socket.data.room);
-
       const players = getPlayerArray(socket.data.room);
       if (players.length === 1) players[0].isReady = false;
+      if (players.length === 0) roomStates.removeRoomState(socket.data.room);
       socket.emit('room:update', players);
       socket.to(socket.data.room).emit('room:update', players);
       socket.data.room = undefined;
