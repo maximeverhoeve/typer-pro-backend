@@ -6,7 +6,7 @@ import {
   ServerToClientEvents,
   SocketData,
 } from 'socketTypes';
-import { getPlayerArray } from '../server';
+import { getPlayerArray, roomStates } from '../server';
 
 const wordArray = [
   'geez',
@@ -41,9 +41,11 @@ const playerHandler = (
 ): void => {
   // HELPER FUNCTIONS
   const checkAllPlayerStatus = (roomId: string, players: Player[]): void => {
+    const roomState = roomStates.getRoomState(roomId);
     let countdownDuration = 5;
     const isAllReady = players.every(({ isReady }) => isReady);
     if (isAllReady) {
+      roomState?.setStatus('LAUNCHING');
       countdownInterval = setInterval(() => {
         socket.to(roomId).emit('room:update-countdown', countdownDuration);
         countdownDuration--;
@@ -51,6 +53,40 @@ const playerHandler = (
         if (countdownDuration < 0) {
           clearInterval(countdownInterval);
           socket.to(roomId).emit('room:countdown-ended');
+          roomState?.setStatus('JOINING');
+        }
+      }, 1000);
+    } else {
+      if (
+        roomState?.getStatus() === 'JOINING' ||
+        roomState?.getStatus() === 'LAUNCHING' ||
+        !players.some(({ isReady }) => isReady)
+      ) {
+        roomState?.setStatus('IDLE');
+      }
+      clearInterval(countdownInterval);
+    }
+  };
+
+  const prepareStart = (): void => {
+    const players = getPlayerArray(socket.data.room);
+    const roomState = roomStates.getRoomState(socket.data.room);
+    let countdownDuration = 5;
+    const isAllLoaded = players.every(({ isLoaded }) => isLoaded);
+    console.log('devmax __ ', isAllLoaded);
+    console.log('devmax __ ', roomState);
+    if (roomState && isAllLoaded && roomState.getStatus() === 'JOINING') {
+      // TODO: retrieve textToType async
+      roomState.setCountdown(5);
+      roomState.setStatus('STARTING');
+      // start coundown
+      countdownInterval = setInterval(() => {
+        roomState.setCountdown(countdownDuration);
+        countdownDuration--;
+
+        if (countdownDuration < 0) {
+          clearInterval(countdownInterval);
+          roomState.setStatus('IN-PROGRESS');
         }
       }, 1000);
     } else {
@@ -59,7 +95,7 @@ const playerHandler = (
   };
 
   // EVENT-FUNCTIONS
-  const onReadyUpate = (isReady: boolean): void => {
+  const onReadyUpdate = (isReady: boolean): void => {
     console.log(`Is ${socket.data.nickname} ready? ${isReady ? 'Yes' : 'no'}`);
     socket.data.player.isReady = isReady;
     const players = getPlayerArray(socket.data.room);
@@ -70,6 +106,7 @@ const playerHandler = (
     socket.emit('room:update', players);
     socket.to(socket.data.room).emit('room:update', players);
   };
+
   const onPlayerUpdate = (payload: Partial<Player>): void => {
     console.log(
       `Player ${socket.data.nickname} updated  ${JSON.stringify(payload)}`,
@@ -79,6 +116,10 @@ const playerHandler = (
 
     socket.emit('room:update', players);
     socket.to(socket.data.room).emit('room:update', players);
+    if (payload.isLoaded) {
+      // check for countdown start
+      prepareStart();
+    }
   };
 
   const onGameStart = (): void => {
@@ -95,7 +136,7 @@ const playerHandler = (
   };
 
   // EVENTS
-  socket.on('player:update-ready', onReadyUpate);
+  socket.on('player:update-ready', onReadyUpdate);
   socket.on('player:update', onPlayerUpdate);
   socket.on('player:progress', onProgressUpdate);
   socket.on('game:start', onGameStart);

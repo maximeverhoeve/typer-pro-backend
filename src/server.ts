@@ -35,7 +35,7 @@ const io = new Server<
 });
 
 // DEFINE ROOM STATE
-const roomStates = new RoomStates(io);
+export const roomStates = new RoomStates(io);
 export const getPlayerArray = (room: string): Player[] => {
   const clientIdsInRoom = io.sockets.adapter.rooms.get(room);
   const players: Player[] = [];

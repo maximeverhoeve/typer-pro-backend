@@ -3,6 +3,7 @@ import { Server } from 'socket.io';
 export interface Player {
   nickname: string;
   isReady: boolean;
+  isLoaded: boolean; // If multiplayer game is rednered
   progress: number; // percentage
   id: string;
   color: string;
@@ -20,9 +21,17 @@ export interface Room {
   count: number;
 }
 
+export type RoomStatus =
+  | 'IDLE' /** Not all players are ready in pre-game lobby */
+  | 'LAUNCHING' /** All players are ready in pre-game lobby and countdown started */
+  | 'JOINING' /** Not all players are loaded in teh game yet */
+  | 'STARTING' /** All players are loaded and the start countdown has started */
+  | 'IN-PROGRESS'; /** All players are loaded and the players can type (countdown ended) */
+
 export interface RoomState {
   name: string;
-  status: 'LAUNCHING' | 'STARTING' | 'IN-PROGRESS' | 'IDLE';
+  status: RoomStatus;
+  countdown: number;
 }
 
 export interface ServerToClientEvents {

@@ -11,7 +11,7 @@ export default class RoomStates {
   }
 
   addRoomState(roomId: string): void {
-    const _roomState = new RoomState({ io: this.io });
+    const _roomState = new RoomState({ io: this.io, name: roomId });
     this.states.set(roomId, _roomState);
   }
 

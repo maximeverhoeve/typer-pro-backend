@@ -41,6 +41,7 @@ const roomHandler = (
     socket.data.player = {
       nickname,
       isReady: false,
+      isLoaded: false,
       progress: 0,
       id: socket.id,
       color: '#888d8a',

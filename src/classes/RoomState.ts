@@ -1,13 +1,15 @@
-import { IoType, RoomState as RoomStateProps } from 'socketTypes';
+import { IoType, RoomState as RoomStateProps, RoomStatus } from 'socketTypes';
 
 export default class RoomState implements RoomStateProps {
   name: string;
-  status: 'LAUNCHING' | 'STARTING' | 'IN-PROGRESS' | 'IDLE';
+  status: RoomStatus;
+  countdown: number;
   io: IoType;
 
   constructor(props: Partial<RoomStateProps> & { io: IoType }) {
     this.name = props.name;
     this.status = props.status || 'IDLE';
+    this.countdown = props.countdown || 0;
     this.io = props.io;
 
     this.updateIo();
@@ -20,15 +22,21 @@ export default class RoomState implements RoomStateProps {
     this.io.to(this.name).emit('roomstate:update', {
       name: this.name,
       status: this.status,
+      countdown: this.countdown,
     });
   }
 
-  getStatus(): 'LAUNCHING' | 'STARTING' | 'IN-PROGRESS' | 'IDLE' {
+  getStatus(): RoomStatus {
     return this.status;
   }
 
-  setStatus(status: 'LAUNCHING' | 'STARTING' | 'IN-PROGRESS' | 'IDLE'): void {
+  setStatus(status: RoomStatus): void {
     this.status = status;
+    this.updateIo();
+  }
+
+  setCountdown(countdown: number): void {
+    this.countdown = countdown;
     this.updateIo();
   }
 }
