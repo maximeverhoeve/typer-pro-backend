@@ -10,28 +10,10 @@ import {
 import { getPlayerArray, roomStates } from '../server';
 import { retrieveRandomText } from '../api/getRandomWords';
 
-const wordArray = [
-  'geez',
-  'uncustomary',
-  'precipitants',
-  'amalgamators',
-  'yasmaks',
-  'titrating',
-  'tinmen',
-  'lady',
-  'allelopathy',
-  'wrote',
-  'diplegias',
-  'naturopathies',
-  'fishbowl',
-  'allying',
-  'confessions',
-  'potstones',
-  'mussily',
-];
-
 // Define interval so we can cancel it outside of events
 let countdownInterval: NodeJS.Timer;
+let countdownGameInterval: NodeJS.Timer;
+let countdownDuration = 5;
 
 const playerHandler = (
   socket: Socket<
@@ -44,12 +26,15 @@ const playerHandler = (
   // HELPER FUNCTIONS
   const checkAllPlayerStatus = (roomId: string, players: Player[]): void => {
     const roomState = roomStates.getRoomState(roomId);
-    let countdownDuration = 5;
+    countdownDuration = 5;
+    clearInterval(countdownInterval);
     const isAllReady = players.every(({ isReady }) => isReady);
-    if (isAllReady) {
+
+    if (roomState && isAllReady && roomState.getStatus() === 'IDLE') {
       roomState?.setStatus('LAUNCHING');
       countdownInterval = setInterval(() => {
         socket.to(roomId).emit('room:update-countdown', countdownDuration);
+        console.log('devmax countdown', countdownDuration);
         countdownDuration--;
 
         if (countdownDuration < 0) {
@@ -81,6 +66,7 @@ const playerHandler = (
     let countdownDuration = 5;
     const isAllLoaded = players.every(({ isLoaded }) => isLoaded);
     if (roomState && isAllLoaded && roomState.getStatus() === 'JOINING') {
+      roomState.setText(undefined);
       try {
         const randomText = await retrieveRandomText();
         console.log('devmax text to type', randomText);
@@ -88,12 +74,12 @@ const playerHandler = (
         roomState.setCountdown(5);
         roomState.setStatus('STARTING');
         // start coundown
-        countdownInterval = setInterval(() => {
+        countdownGameInterval = setInterval(() => {
           roomState.setCountdown(countdownDuration);
           countdownDuration--;
 
           if (countdownDuration < 0) {
-            clearInterval(countdownInterval);
+            clearInterval(countdownGameInterval);
             roomState.setStatus('IN-PROGRESS');
           }
         }, 1000);
@@ -101,7 +87,7 @@ const playerHandler = (
         //
       }
     } else {
-      clearInterval(countdownInterval);
+      clearInterval(countdownGameInterval);
     }
   };
 
@@ -133,12 +119,6 @@ const playerHandler = (
     }
   };
 
-  const onGameStart = (): void => {
-    const text = wordArray.join(' ');
-    socket.emit('game:started', text);
-    socket.to(socket.data.room).emit('game:started', text);
-  };
-
   const onProgressUpdate = (progress: number): void => {
     socket.data.player.progress = progress;
     const players = getPlayerArray(socket.data.room);
@@ -150,7 +130,6 @@ const playerHandler = (
   socket.on('player:update-ready', onReadyUpdate);
   socket.on('player:update', onPlayerUpdate);
   socket.on('player:progress', onProgressUpdate);
-  socket.on('game:start', onGameStart);
 };
 
 export default playerHandler;
