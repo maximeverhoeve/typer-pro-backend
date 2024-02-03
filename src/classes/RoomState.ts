@@ -5,11 +5,13 @@ export default class RoomState implements RoomStateProps {
   status: RoomStatus;
   countdown: number;
   io: IoType;
+  text: string | undefined;
 
   constructor(props: Partial<RoomStateProps> & { io: IoType }) {
     this.name = props.name;
     this.status = props.status || 'IDLE';
     this.countdown = props.countdown || 0;
+    this.text = props.text;
     this.io = props.io;
 
     this.updateIo();
@@ -23,6 +25,7 @@ export default class RoomState implements RoomStateProps {
       name: this.name,
       status: this.status,
       countdown: this.countdown,
+      text: this.text,
     });
   }
 
@@ -37,6 +40,11 @@ export default class RoomState implements RoomStateProps {
 
   setCountdown(countdown: number): void {
     this.countdown = countdown;
+    this.updateIo();
+  }
+
+  setText(text?: string): void {
+    this.text = text;
     this.updateIo();
   }
 }

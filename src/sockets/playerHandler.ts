@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import { Socket } from 'socket.io';
 import {
   ClientToServerEvents,
@@ -7,6 +8,7 @@ import {
   SocketData,
 } from 'socketTypes';
 import { getPlayerArray, roomStates } from '../server';
+import { retrieveRandomText } from '../api/getRandomWords';
 
 const wordArray = [
   'geez',
@@ -68,27 +70,36 @@ const playerHandler = (
     }
   };
 
-  const prepareStart = (): void => {
+  /**
+   * Checks if all players are loaded
+   * Retrieves text to type
+   * Starts countdown
+   */
+  const prepareStart = async (): Promise<void> => {
     const players = getPlayerArray(socket.data.room);
     const roomState = roomStates.getRoomState(socket.data.room);
     let countdownDuration = 5;
     const isAllLoaded = players.every(({ isLoaded }) => isLoaded);
-    console.log('devmax __ ', isAllLoaded);
-    console.log('devmax __ ', roomState);
     if (roomState && isAllLoaded && roomState.getStatus() === 'JOINING') {
-      // TODO: retrieve textToType async
-      roomState.setCountdown(5);
-      roomState.setStatus('STARTING');
-      // start coundown
-      countdownInterval = setInterval(() => {
-        roomState.setCountdown(countdownDuration);
-        countdownDuration--;
+      try {
+        const randomText = await retrieveRandomText();
+        console.log('devmax text to type', randomText);
+        roomState.setText(randomText);
+        roomState.setCountdown(5);
+        roomState.setStatus('STARTING');
+        // start coundown
+        countdownInterval = setInterval(() => {
+          roomState.setCountdown(countdownDuration);
+          countdownDuration--;
 
-        if (countdownDuration < 0) {
-          clearInterval(countdownInterval);
-          roomState.setStatus('IN-PROGRESS');
-        }
-      }, 1000);
+          if (countdownDuration < 0) {
+            clearInterval(countdownInterval);
+            roomState.setStatus('IN-PROGRESS');
+          }
+        }, 1000);
+      } catch {
+        //
+      }
     } else {
       clearInterval(countdownInterval);
     }
