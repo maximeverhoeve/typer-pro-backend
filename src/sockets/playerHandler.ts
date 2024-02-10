@@ -116,6 +116,13 @@ const playerHandler = (
     if (payload.isLoaded) {
       // check for countdown start
       prepareStart();
+    } else if (Object.keys(payload).includes('isLoaded')) {
+      /** When all players are unloaded from multiplayer game, set status back to idle */
+      const loadedPlayers = players.filter(({ isLoaded }) => isLoaded);
+      const roomState = roomStates.getRoomState(socket.data.room);
+      if (!loadedPlayers.length && roomState?.status === 'IN-PROGRESS') {
+        roomState.setStatus('IDLE');
+      }
     }
   };
 

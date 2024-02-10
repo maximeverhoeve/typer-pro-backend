@@ -2,6 +2,7 @@ import { Socket, Server } from 'socket.io';
 import {
   ClientToServerEvents,
   InterServerEvents,
+  RoomStateStats,
   ServerToClientEvents,
   SocketData,
 } from 'socketTypes';
@@ -98,10 +99,21 @@ const roomHandler = (
     socket.broadcast.emit('rooms:get', roomsMap);
   };
 
+  const onRoomFinished = (stats: RoomStateStats): void => {
+    const roomState = roomStates.getRoomState(socket.data.room);
+    if (roomState) {
+      roomState.addToLeaderboard(socket.id, {
+        ...stats,
+        name: socket.data.nickname,
+      });
+    }
+  };
+
   // EVENTS
   socket.on('room:join', onRoomJoin);
   socket.on('room:leave', onRoomLeave);
   socket.on('room:request', onRoomRequest);
+  socket.on('room:finished', onRoomFinished);
   socket.on('rooms:request', onRoomsRequest);
 };
 

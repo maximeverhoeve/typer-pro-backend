@@ -1,4 +1,9 @@
-import { IoType, RoomState as RoomStateProps, RoomStatus } from 'socketTypes';
+import {
+  IoType,
+  RoomState as RoomStateProps,
+  RoomStateStats,
+  RoomStatus,
+} from 'socketTypes';
 
 export default class RoomState implements RoomStateProps {
   name: string;
@@ -6,6 +11,7 @@ export default class RoomState implements RoomStateProps {
   countdown: number;
   io: IoType;
   text: string | undefined;
+  leaderboard: { [playerId: string]: RoomStateStats };
 
   constructor(props: Partial<RoomStateProps> & { io: IoType }) {
     this.name = props.name;
@@ -13,7 +19,13 @@ export default class RoomState implements RoomStateProps {
     this.countdown = props.countdown || 0;
     this.text = props.text;
     this.io = props.io;
+    this.leaderboard = props.leaderboard || {};
 
+    this.updateIo();
+  }
+
+  private clearLeaderBoard(): void {
+    delete this.leaderboard;
     this.updateIo();
   }
 
@@ -26,6 +38,7 @@ export default class RoomState implements RoomStateProps {
       status: this.status,
       countdown: this.countdown,
       text: this.text,
+      leaderboard: this.leaderboard,
     });
   }
 
@@ -35,6 +48,9 @@ export default class RoomState implements RoomStateProps {
 
   setStatus(status: RoomStatus): void {
     this.status = status;
+    if (status === 'STARTING') {
+      this.clearLeaderBoard();
+    }
     this.updateIo();
   }
 
@@ -45,6 +61,12 @@ export default class RoomState implements RoomStateProps {
 
   setText(text?: string): void {
     this.text = text;
+    this.updateIo();
+  }
+
+  addToLeaderboard(playerId: string, stats: RoomStateStats): void {
+    if (!this.leaderboard) this.leaderboard = {};
+    this.leaderboard[playerId] = stats;
     this.updateIo();
   }
 }

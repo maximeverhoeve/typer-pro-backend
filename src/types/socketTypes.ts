@@ -33,6 +33,13 @@ export interface RoomState {
   status: RoomStatus;
   countdown: number;
   text?: string;
+  leaderboard?: {
+    [playerId: string]: {
+      name: string;
+      wpm: number;
+      acc: number;
+    };
+  };
 }
 
 export interface ServerToClientEvents {
@@ -55,7 +62,7 @@ export interface ClientToServerEvents {
   'player:update': (payload: Partial<Player>) => void;
   'player:update-ready': (isReady: boolean) => void;
   'player:progress': (progress: number) => void;
-  'game:start': () => void;
+  'room:finished': (stats: RoomStateStats) => void;
 }
 
 // SERVER ONLY TYPES
@@ -71,6 +78,12 @@ export interface InterServerEvents {
 
 export interface RoomStateObject {
   [roomId: string]: RoomState;
+}
+
+export interface RoomStateStats {
+  wpm: number;
+  acc: number;
+  name: string;
 }
 
 export type IoType = Server<
