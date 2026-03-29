@@ -5,7 +5,7 @@ import {
   RoomStateStats,
   ServerToClientEvents,
   SocketData,
-} from 'socketTypes';
+} from '../types/socketTypes';
 import { getPlayerArray } from '../server';
 import RoomStates from '../classes/RoomStates';
 
@@ -100,6 +100,7 @@ const roomHandler = (
   };
 
   const onRoomFinished = (stats: RoomStateStats): void => {
+    if (!socket.data.room) return;
     const roomState = roomStates.getRoomState(socket.data.room);
     if (roomState) {
       roomState.addToLeaderboard(socket.id, {

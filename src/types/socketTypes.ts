@@ -68,7 +68,7 @@ export interface ClientToServerEvents {
 // SERVER ONLY TYPES
 export interface SocketData {
   nickname: string;
-  room: string;
+  room?: string;
   player: Player;
 }
 

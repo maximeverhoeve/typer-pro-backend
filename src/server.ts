@@ -5,10 +5,10 @@ import {
   ServerToClientEvents,
   SocketData,
 } from './types/socketTypes';
-import * as express from 'express';
-import * as http from 'http';
+import express from 'express';
+import http from 'http';
 import { Server } from 'socket.io';
-import * as cors from 'cors';
+import cors from 'cors';
 import html from './constants/html';
 import chatHandler from './sockets/chatHandler';
 import roomHandler from './sockets/roomHandler';

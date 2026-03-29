@@ -3,7 +3,7 @@ import {
   RoomState as RoomStateProps,
   RoomStateStats,
   RoomStatus,
-} from 'socketTypes';
+} from '../types/socketTypes';
 
 export default class RoomState implements RoomStateProps {
   name: string;
@@ -11,9 +11,9 @@ export default class RoomState implements RoomStateProps {
   countdown: number;
   io: IoType;
   text: string | undefined;
-  leaderboard: { [playerId: string]: RoomStateStats };
+  leaderboard?: { [playerId: string]: RoomStateStats };
 
-  constructor(props: Partial<RoomStateProps> & { io: IoType }) {
+  constructor(props: Partial<RoomStateProps> & { io: IoType; name: string }) {
     this.name = props.name;
     this.status = props.status || 'IDLE';
     this.countdown = props.countdown || 0;
