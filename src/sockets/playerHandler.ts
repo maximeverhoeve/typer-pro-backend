@@ -6,13 +6,13 @@ import {
   Player,
   ServerToClientEvents,
   SocketData,
-} from 'socketTypes';
+} from '../types/socketTypes';
 import { getPlayerArray, roomStates } from '../server';
 import { retrieveRandomText } from '../api/getRandomWords';
 
 // Define interval so we can cancel it outside of events
-let countdownInterval: NodeJS.Timer;
-let countdownGameInterval: NodeJS.Timer;
+let countdownInterval: NodeJS.Timeout | undefined;
+let countdownGameInterval: NodeJS.Timeout | undefined;
 let countdownDuration = 5;
 
 const playerHandler = (
@@ -61,6 +61,7 @@ const playerHandler = (
    * Starts countdown
    */
   const prepareStart = async (): Promise<void> => {
+    if (!socket.data.room) return;
     const players = getPlayerArray(socket.data.room);
     const roomState = roomStates.getRoomState(socket.data.room);
     let countdownDuration = 5;
@@ -93,6 +94,7 @@ const playerHandler = (
 
   // EVENT-FUNCTIONS
   const onReadyUpdate = (isReady: boolean): void => {
+    if (!socket.data.room) return;
     console.log(`Is ${socket.data.nickname} ready? ${isReady ? 'Yes' : 'no'}`);
     socket.data.player.isReady = isReady;
     const players = getPlayerArray(socket.data.room);
@@ -105,6 +107,7 @@ const playerHandler = (
   };
 
   const onPlayerUpdate = (payload: Partial<Player>): void => {
+    if (!socket.data.room) return;
     console.log(
       `Player ${socket.data.nickname} updated  ${JSON.stringify(payload)}`,
     );
@@ -127,6 +130,7 @@ const playerHandler = (
   };
 
   const onProgressUpdate = (progress: number): void => {
+    if (!socket.data.room) return;
     socket.data.player.progress = progress;
     const players = getPlayerArray(socket.data.room);
     socket.emit('room:update', players);

@@ -5,7 +5,7 @@ import {
   Message,
   ServerToClientEvents,
   SocketData,
-} from 'socketTypes';
+} from '../types/socketTypes';
 
 const chatHandler = (
   socket: Socket<

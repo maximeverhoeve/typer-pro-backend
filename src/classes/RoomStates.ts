@@ -1,5 +1,5 @@
 import RoomState from './RoomState';
-import { IoType } from 'socketTypes';
+import { IoType } from '../types/socketTypes';
 
 export default class RoomStates {
   readonly states: Map<string, RoomState>;
